@@ -1,0 +1,15 @@
+# Données : jamais versionnées (elles sont téléchargées par un script)
+data/
+
+# Fichiers temporaires Python et Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Environnement local (mots de passe, configurations personnelles)
+.env
+.venv/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
