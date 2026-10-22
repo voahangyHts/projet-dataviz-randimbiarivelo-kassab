@@ -1,0 +1,20 @@
+# Consommation électrique et vagues de froid — du data lake au tableau de bord
+
+**Binôme :** Voahangy RANDIMBIARIVELO · Elyes KASSAB
+**Cours :** Visualisation de données — Mastère Big Data & IA (M1), Sup de Vinci — M. L. NDAO
+**Session :** 2026-2027
+
+---
+
+## 2. Le persona
+
+| | |
+|---|---|
+| **Qui ?** | Le **Gestionnaire des Pics de Charge et de la Flexibilité Réseau** chez Enedis. |
+| **Que décide-t-il ?** | Le déclenchement d'actions de **flexibilité locale** (effacements, signaux tarifaires) ou la priorisation des **renforcements physiques du réseau** (transformateurs), pour éviter les coupures. |
+| **À quelle fréquence ?** | Chaque **semaine**, voire chaque **jour**, pendant la période hivernale (novembre à mars). |
+
+### Sa question principale
+
+> **Quelles régions présentent la plus forte réactivité au froid (thermosensibilité) et risquent
+> de saturer la capacité du réseau lors des prochaines vagues de froid ?**
