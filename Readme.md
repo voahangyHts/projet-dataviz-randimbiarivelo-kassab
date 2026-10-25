@@ -32,14 +32,6 @@ sources de données ouvertes**, téléchargeables par script.
 | **Objectif** | Croiser la température avec la consommation lors de la phase de préparation (**Silver / Gold**) pour modéliser la **thermosensibilité** de chaque région. |
 | **Licence** | Licence Ouverte / Open Licence 2.0 |
 
-### 1.3 Critère d'exclusion
-
-Le jeu de données **NYC Taxi** utilisé dans le cours n'est **pas** utilisé dans ce projet.
-
-> Les données ne sont pas versionnées dans ce dépôt : elles sont téléchargées par un script.
-
----
-
 ## 2. Le persona
 
 | | |
