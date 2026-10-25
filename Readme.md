@@ -1,8 +1,8 @@
 # Consommation électrique et vagues de froid — du data lake au tableau de bord
 
-**Binôme :** Voahangy RANDIMBIARIVELO · Elyes KASSAB
-**Cours :** Visualisation de données — Mastère Big Data & IA (M1), Sup de Vinci — M. L. NDAO
-**Session :** 2026-2027
+- **Binôme :** Voahangy RANDIMBIARIVELO · Elyes KASSAB
+- **Cours :** Visualisation de données — Mastère Big Data & IA (M1), Sup de Vinci — M. L. NDAO
+- **Session :** 2026-2027
 
 ## 1. Les jeux de données
 
