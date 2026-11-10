@@ -1,0 +1,120 @@
+# ============================================================================
+#  Projet « Consommation électrique et vagues de froid »
+# ============================================================================
+#  Base (Jupyter + Spark, RustFS, PostgreSQL) : docker compose up -d
+#  + Serveur SPARQL (Fuseki)                  : docker compose --profile semantique up -d
+#  + Tableau de bord Streamlit                : docker compose --profile app up -d --build
+#  Arrêter                                    : docker compose --profile "*" down
+#  Identifiants : copier .env.example en .env (facultatif, des valeurs par défaut existent)
+# ============================================================================
+name: projet-dataviz
+
+services:
+
+  jupyter:
+    image: quay.io/jupyter/pyspark-notebook:latest
+    container_name: jupyter
+    ports:
+      - "8888:8888"   # JupyterLab -> http://localhost:8888/lab?token=projet
+      - "4040:4040"   # Spark UI
+    volumes:
+      - .:/home/jovyan/work
+      - ivy-cache:/home/jovyan/.ivy2
+    command: start-notebook.py --IdentityProvider.token=${JUPYTER_TOKEN:-projet}
+    environment:
+      S3_ENDPOINT: http://rustfs:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-rustfsadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-rustfsadmin}
+      PG_URL: jdbc:postgresql://postgres:5432/${PG_DB:-enedis}
+      PG_HOST: postgres
+      PG_DB: ${PG_DB:-enedis}
+      PG_USER: ${PG_USER:-projet}
+      PG_PASSWORD: ${PG_PASSWORD:-projet}
+    depends_on:
+      - postgres
+      - rustfs
+
+  rustfs-init:
+    image: alpine:3.20
+    command: sh -c "chown -R 10001:10001 /data && echo volume pret"
+    volumes:
+      - lake-data:/data
+
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs
+    ports:
+      - "9000:9000"   # API S3
+      - "9001:9001"   # Console -> http://localhost:9001
+    environment:
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY:-rustfsadmin}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY:-rustfsadmin}
+      RUSTFS_UNSAFE_BYPASS_DISK_CHECK: "true"
+    volumes:
+      - lake-data:/data
+    depends_on:
+      rustfs-init:
+        condition: service_completed_successfully
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${PG_USER:-projet}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-projet}
+      POSTGRES_DB: ${PG_DB:-enedis}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    ports:
+      - "8080:8080"   # -> http://localhost:8080 (PostgreSQL, serveur postgres)
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+
+  fuseki:
+    profiles: ["semantique"]
+    image: secoresearch/fuseki:latest
+    container_name: fuseki
+    ports:
+      - "3030:3030"   # -> http://localhost:3030
+    environment:
+      ADMIN_PASSWORD: ${FUSEKI_ADMIN_PASSWORD:-admin}
+      ENABLE_DATA_WRITE: "true"
+      ENABLE_UPDATE: "true"
+    volumes:
+      - fuseki-data:/fuseki-base/databases
+
+  streamlit:
+    profiles: ["app"]
+    build: ./app
+    container_name: streamlit
+    ports:
+      - "8501:8501"   # -> http://localhost:8501
+    environment:
+      PG_HOST: postgres
+      PG_DB: ${PG_DB:-enedis}
+      PG_USER: ${PG_USER:-projet}
+      PG_PASSWORD: ${PG_PASSWORD:-projet}
+      REGIONS_GEOJSON: /data/raw/geo/regions.geojson
+    volumes:
+      - ./app:/app
+      - ./data:/data:ro
+    depends_on:
+      - postgres
+
+volumes:
+  ivy-cache:
+  lake-data:
+  pg-data:
+  fuseki-data:
