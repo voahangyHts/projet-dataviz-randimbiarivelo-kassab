@@ -1,0 +1,116 @@
+@prefix en: <http://example.org/enedis#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+en:MesureJourDeFroid a owl:Class ;
+    rdfs:label "consommation d'un des 10 jours les plus froids"@fr ;
+    rdfs:subClassOf en:MesureJournaliere .
+
+en:ProfilEntreprise a owl:Class ;
+    rdfs:label "petites entreprises (ENT)"@fr ;
+    rdfs:subClassOf en:ProfilClient .
+
+en:ProfilProfessionnel a owl:Class ;
+    rdfs:label "clients professionnels (PRO)"@fr ;
+    rdfs:subClassOf en:ProfilClient .
+
+en:ProfilResidentiel a owl:Class ;
+    rdfs:label "clients résidentiels (RES)"@fr ;
+    rdfs:subClassOf en:ProfilClient .
+
+en:codeInsee a owl:DatatypeProperty ;
+    rdfs:label "code INSEE du département"@fr ;
+    rdfs:domain en:Departement ;
+    rdfs:range xsd:string .
+
+en:codeRegion a owl:DatatypeProperty ;
+    rdfs:label "code INSEE de la région"@fr ;
+    rdfs:domain en:Region ;
+    rdfs:range xsd:string .
+
+en:concerne a owl:ObjectProperty ;
+    rdfs:label "concerne la région"@fr ;
+    rdfs:domain en:Mesure ;
+    rdfs:range en:Region .
+
+en:date a owl:DatatypeProperty ;
+    rdfs:label "date"@fr ;
+    rdfs:domain en:MesureJournaliere ;
+    rdfs:range xsd:date .
+
+en:gradientMWParDegre a owl:DatatypeProperty ;
+    rdfs:label "thermosensibilité (MW par °C)"@fr ;
+    rdfs:domain en:Region ;
+    rdfs:range xsd:decimal .
+
+en:gradientWParClient a owl:DatatypeProperty ;
+    rdfs:label "thermosensibilité par client (W par °C)"@fr ;
+    rdfs:domain en:Region ;
+    rdfs:range xsd:decimal .
+
+en:heure a owl:DatatypeProperty ;
+    rdfs:label "heure (0 à 23)"@fr ;
+    rdfs:domain en:MesurePointe ;
+    rdfs:range xsd:integer .
+
+en:mois a owl:DatatypeProperty ;
+    rdfs:label "mois (1 à 12)"@fr ;
+    rdfs:domain en:MesurePointe ;
+    rdfs:range xsd:integer .
+
+en:nom a owl:DatatypeProperty ;
+    rdfs:label "nom"@fr ;
+    rdfs:domain en:Region ;
+    rdfs:range xsd:string .
+
+en:pointeMW a owl:DatatypeProperty ;
+    rdfs:label "pointe de la journée (MW)"@fr ;
+    rdfs:domain en:MesureJournaliere ;
+    rdfs:range xsd:decimal .
+
+en:pourProfil a owl:ObjectProperty ;
+    rdfs:label "pour la famille de clients"@fr ;
+    rdfs:domain en:MesurePointe ;
+    rdfs:range en:ProfilClient .
+
+en:puissanceMoyenneMW a owl:DatatypeProperty ;
+    rdfs:label "puissance moyenne (MW)"@fr ;
+    rdfs:domain en:Mesure ;
+    rdfs:range xsd:decimal .
+
+en:rangReactivite a owl:DatatypeProperty ;
+    rdfs:label "rang de réactivité au froid"@fr ;
+    rdfs:domain en:Region ;
+    rdfs:range xsd:integer .
+
+en:situeDans a owl:ObjectProperty ;
+    rdfs:label "est situé dans"@fr ;
+    rdfs:domain en:Departement ;
+    rdfs:range en:Region .
+
+en:temperatureMoyenne a owl:DatatypeProperty ;
+    rdfs:label "température moyenne (°C)"@fr ;
+    rdfs:domain en:MesureJournaliere ;
+    rdfs:range xsd:decimal .
+
+en:Departement a owl:Class ;
+    rdfs:label "département"@fr .
+
+en:MesurePointe a owl:Class ;
+    rdfs:label "puissance moyenne à une heure donnée"@fr ;
+    rdfs:subClassOf en:Mesure .
+
+en:Mesure a owl:Class ;
+    rdfs:label "mesure de consommation"@fr .
+
+en:MesureJournaliere a owl:Class ;
+    rdfs:label "consommation d'une région sur un jour"@fr ;
+    rdfs:subClassOf en:Mesure .
+
+en:ProfilClient a owl:Class ;
+    rdfs:label "famille de clients"@fr .
+
+en:Region a owl:Class ;
+    rdfs:label "région"@fr .
+
