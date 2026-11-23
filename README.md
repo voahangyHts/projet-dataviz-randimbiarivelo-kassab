@@ -245,24 +245,25 @@ différence est la Corse, retirée par la règle `meteo_hors_perimetre_enedis`.
 
 ## 7. Couche gold : tables d'agrégats
 
-Une question métier = une table. Chaque table est écrite dans le lac (`gold/`, Delta) puis exportée dans PostgreSQL.
+Notebook : `notebooks/03_gold.ipynb`. Le gold transforme les 2 575 440 lignes du silver en 4 petites tables qui répondent à la question du persona.
+Chaque table est écrite dans le lac (`gold/`, Delta) puis exportée dans PostgreSQL pour le tableau de bord.
 
-| Table | Grain (une ligne =) | Question du persona |
-|---|---|---|
-| `gold_conso_jour_region` | 1 jour × 1 région : énergie (MWh), puissance moyenne (MW), température moyenne et minimale | La consommation suit-elle la température ? |
-| `gold_thermosensibilite_region` | 1 région : gradient (MW par °C), R², nombre de jours sous le seuil | Quelles régions réagissent le plus au froid ? |
-| `gold_pointe_horaire` | 1 heure × 1 mois × 1 région × 1 profil : puissance moyenne (MW) | À quelle heure tombe la pointe d'hiver ? |
-| `gold_jours_froids` | 1 jour froid × 1 région : puissance, écart à un jour « normal » (%) | Que se passe-t-il pendant une vague de froid ? |
-| `gold_pointe_hiver_region` | 1 région : pointe maximale (MW) et son horodate | Quel est le risque de saturation ? |
+| Table | Grain (une ligne =) | Lignes | Question du persona |
+|---|---|---|---|
+| `gold_conso_jour_region` | 1 région × 1 jour : énergie (MWh), puissance moyenne (MW), pointe (MW), nombre de clients, températures, kWh par client | 4 380 (12 × 365) | La consommation suit-elle la température ? |
+| `gold_thermosensibilite_region` | 1 région : gradient (MW/°C et W/°C par client), R², pointe 2022, pointe estimée à −5 °C, dépassement (%), rang | 12 | Quelles régions réagissent le plus au froid et risquent de saturer ? |
+| `gold_pointe_horaire` | 1 région × 1 famille de clients (RES, PRO, ENT) × 1 mois × 1 heure : puissance moyenne (MW) | 10 368 (12 × 3 × 12 × 24) | À quelle heure tombe la pointe ? |
+| `gold_jours_froids` | 1 région × 1 des 10 jours les plus froids : puissance, pointe, surplus par rapport à un jour d'hiver moyen (%) | 120 (12 × 10) | Que se passe-t-il pendant une vague de froid ? |
 
 Choix de calcul :
-- **Unités** : l'énergie est en Wh par demi-heure ; puissance moyenne (MW) = Wh × 2 ÷ 1 000 000.
-- **Thermosensibilité** : pente de la régression *puissance moyenne journalière ~ température moyenne*, sur les jours de température
-  moyenne inférieure à 15 °C (en dessous, le chauffage domine). Le gradient s'exprime en MW supplémentaires par degré perdu.
-- **Jour froid** : température moyenne régionale inférieure à 5 °C, de novembre à mars ; comparé à la moyenne des autres jours d'hiver de la même région.
-- **Changements d'heure** : le 27 mars 2022 compte 46 demi-heures et le 30 octobre 50. La puissance journalière moyenne utilise le nombre réel de demi-heures, pas 48.
-
----
+- **12 régions** : la Corse étant déjà exclue dès le silver (`meteo_hors_perimetre_enedis`), la jointure consommation × météo porte directement sur les 12 régions métropolitaines gérées par Enedis.
+- **Charge régionale** : les profils de clients sont additionnés pour chaque demi-heure.
+- **Changement d'heure du 30 octobre 2022** : la tranche 2 h – 3 h existe deux fois ; la puissance est moyennée sur les deux occurrences (sinon elle serait doublée), l'énergie est additionnée.
+- **Thermosensibilité** : pente de la régression *puissance moyenne journalière ~ température moyenne*, sur les jours sous 15 °C (au-dessus, le chauffage est négligeable). Le gradient est positif : MW supplémentaires pour 1 °C perdu.
+  Il est aussi calculé par client (W/°C), ce qui compare les régions quelle que soit leur taille ; le classement `rang_reactivite` repose sur cette colonne.
+- **Risque de saturation** : la pointe prévue à −5 °C est extrapolée par la droite de régression, puis comparée à la plus forte pointe de 2022.
+  C'est une extrapolation, peu fiable pour les régions qui n'ont jamais approché −5 °C cette année-là (voir « Limites »).
+- **Jours froids** : les 10 jours les plus froids de chaque région, comparés à la moyenne des jours d'hiver (novembre à mars) de la même région.
 
 ## 8. Sémantique : ontologie et requêtes SPARQL
 
