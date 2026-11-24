@@ -13,3 +13,7 @@ __pycache__/
 # Fichiers système
 .DS_Store
 Thumbs.db
+spark-warehouse/
+metastore_db/
+derby.log
+iframe_figures/

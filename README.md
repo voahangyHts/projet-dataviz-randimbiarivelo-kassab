@@ -122,7 +122,7 @@ Sous Windows, exécuter les commandes `bash` depuis **Git Bash**.
 
 ```bash
 # 1. Cloner le dépôt
-git clone https://github.com/voahangyHts/projet-dataviz-randimbiarivelo-kassab.git
+git clone [https://github.com/voahangyHts/projet-dataviz-randimbiarivelo-kassab.git](https://github.com/voahangyHts/projet-dataviz-randimbiarivelo-kassab.git)
 cd projet-dataviz-randimbiarivelo-kassab
 
 # 2. Créer le fichier d'environnement (les valeurs par défaut conviennent)
@@ -222,7 +222,7 @@ Une même ligne peut être visée par plusieurs règles : les lignes retirées n
 
 ### 6.3 Les règles à 0 ligne
 
-Cinq règles ne retirent aucune ligne : le fichier Enedis est propre sur ces points. Nous les gardons, car elles
+Six règles ne retirent aucune ligne : le fichier Enedis est propre sur ces points. Nous les gardons, car elles
 documentent la qualité vérifiée et protègent la chaîne si la source change (par exemple une nouvelle publication trimestrielle).
 
 ### 6.4 Valeurs extrêmes : erreur ou vrai pic de froid ?
@@ -265,6 +265,8 @@ Choix de calcul :
   C'est une extrapolation, peu fiable pour les régions qui n'ont jamais approché −5 °C cette année-là (voir « Limites »).
 - **Jours froids** : les 10 jours les plus froids de chaque région, comparés à la moyenne des jours d'hiver (novembre à mars) de la même région.
 
+---
+
 ## 8. Sémantique : ontologie et requêtes SPARQL
 
 Notebook : `notebooks/04_ontologie_sparql.ipynb` (RDFLib). Fichiers produits dans `ontologie/` :
@@ -293,6 +295,7 @@ en trouve 4 380. Les 120 jours de froid sont déduits de l'ontologie, sans que l
 
 **Pourquoi ne pas mettre les 17 millions de lignes dans le graphe ?** Le graphe décrit et relie les concepts ;
 le data lake stocke le volume. Le graphe ne contient que les régions, départements, familles et des résultats agrégés du gold.
+
 ---
 
 ## 9. Visualisation
@@ -302,36 +305,45 @@ le data lake stocke le volume. Le graphe ne contient que les régions, départem
 `notebooks/05_exploration.ipynb` : évolution annuelle de la consommation, consommation journalière contre température,
 gradient par région, profil horaire hiver contre été, carte des régions.
 
+![Évolution annuelle de la consommation](docs/05_evolution_annuelle.png)
+
+![Profil horaire hiver et été](docs/05_profil_horaire_hiver_ete.png)
+
 ### 9.2 Avant / après
 
-> **À compléter** avec les graphiques et leurs justifications (captures dans `docs/`).
+Chaque version « Après » applique aussi un titre qui énonce la conclusion et des axes avec unités explicites.
 
 | Avant (version naïve) | Après (version corrigée) | Principe de perception |
 |---|---|---|
-| Camembert de la consommation par région | Barres horizontales triées | La position le long d'un axe se lit mieux que l'angle (Cleveland & McGill) |
+| Camembert de la consommation par région | Barres horizontales triées (W/°C par client) | La position le long d'un axe se lit mieux que l'angle (Cleveland & McGill) |
+| Barres verticales dont l'axe commence à 50 | Barres horizontales triées, axe démarrant à zéro | La longueur d'une barre doit être proportionnelle à la valeur |
 | Double axe consommation et température | Nuage de points consommation contre température | Pas de double axe : une relation se montre par un nuage |
 | Carte en palette arc-en-ciel | Palette séquentielle | La couleur doit avoir un sens ordonné et rester lisible pour les daltoniens |
-| Barres dont l'axe commence à 50 | Axe démarrant à zéro | La longueur d'une barre doit être proportionnelle à la valeur |
-| Titre « Consommation » | Titre qui énonce la conclusion, axes avec unités | Le titre guide la lecture ; l'unité évite les contresens |
+
+![Camembert → barres triées](docs/05_avant_apres_camembert_barres.png)
+
+![Axe tronqué → axe à zéro](docs/05_avant_apres_axe_zero.png)
+
+![Double axe → nuage de points](docs/05_avant_apres_double_axe_nuage.png)
+
+![Arc-en-ciel → palette séquentielle](docs/05_avant_apres_carte.png)
 
 ---
 
 ## 10. Tableau de bord Streamlit
 
-Récit en trois temps : **contexte** (la consommation sur l'année et dans la journée, les régions en chiffres),
-**constat** (la consommation monte quand il fait froid, et certaines régions bien plus que d'autres),
-**recommandation** (où prioriser la flexibilité et le renforcement, texte calculé à partir des données).
+Récit en trois parties : contexte (charge sur l'année, profil horaire par famille), constat (consommation par client contre température, classement et carte des régions), recommandation (actions calculées à partir des données, risque de saturation à −5 °C). Filtres : régions, familles de clients, période (hiver ou année), seuil de jour froid.
 
-Filtres : régions, profil de client, période, seuil de température.
+![Tableau de bord](docs/06_dashboard.png)
 
 ### Fiches des KPI
 
 | KPI | Définition | Calcul | Intérêt pour le persona |
 |---|---|---|---|
-| **Gradient de thermosensibilité** (MW/°C) | Puissance supplémentaire appelée pour chaque degré perdu | Pente de la régression consommation journalière ~ température moyenne, sur les jours sous 15 °C | Classe les régions les plus sensibles au froid : où agir en priorité |
-| **Pointe d'hiver** (MW) | Plus forte puissance moyenne sur une demi-heure entre novembre et mars | max(Wh × 2 ÷ 10⁶) | Mesure le risque de saturation |
-| **Écart jour froid / jour normal** (%) | Surconsommation pendant les jours les plus froids | (conso moyenne des jours à moins de 5 °C ÷ conso moyenne des autres jours d'hiver) − 1 | Chiffre l'effet d'une vague de froid |
-| **Part résidentielle à la pointe** (%) | Poids des particuliers dans la pointe de 19 h | énergie résidentielle ÷ énergie totale, créneau 18 h-20 h, en hiver | Dit qui cibler : effacement chez les particuliers ou chez les professionnels |
+| **Région la plus réactive au froid** (W/°C par client) | Puissance supplémentaire appelée par un client moyen pour chaque degré perdu | Pente de la régression puissance moyenne journalière ~ température moyenne, sur les jours sous 15 °C, divisée par le nombre de clients | Désigne où chaque client réagit le plus au froid : où cibler la flexibilité en priorité |
+| **Pointe la plus forte** (MW) | Plus forte puissance appelée sur une demi-heure | max(énergie en Wh × 2 ÷ 10⁶) sur la période et les régions choisies | Mesure le risque de saturation du réseau |
+| **Surconsommation les jours froids** (%) | Effet d'une vague de froid sur la charge | (puissance moyenne des jours sous le seuil ÷ puissance moyenne des autres jours) − 1, sur la charge totale des régions choisies | Chiffre ce que coûte un jour froid au réseau |
+| **Part des particuliers à la pointe du soir** (%) | Poids des clients résidentiels entre 18 h et 20 h | puissance résidentielle ÷ puissance totale, créneau 18 h – 20 h | Dit qui cibler : effacement chez les particuliers ou chez les professionnels |
 
 ---
 
@@ -339,11 +351,19 @@ Filtres : régions, profil de client, période, seuil de température.
 
 - **Année atypique** : 2022 est marquée par la crise énergétique et le plan de sobriété de l'automne ; la consommation a baissé
   pour d'autres raisons que la météo.
+- **Extrapolation à −5 °C** : la pointe estimée suppose une relation linéaire sous 15 °C ; elle est peu fiable pour les
+  régions qui ne sont jamais descendues sous 0 °C en 2022 (Bretagne, PACA, Nouvelle-Aquitaine, Occitanie).
+- **Clients ≤ 36 kVA seulement** : particuliers et petits professionnels ; l'industrie n'est pas couverte, ce qui gonfle
+  mécaniquement la part des particuliers dans la pointe (80 à 83 %).
+- **Séries masquées** : 9 séries entièrement en secret statistique (« S ») ; certaines régions ont 12 séries de profils, d'autres 13.
 - **Secret statistique** : les valeurs « S » masquent les petits groupes, donc certaines plages de puissance sont incomplètes.
+- **Corse absente** : Enedis ne gère pas le réseau corse ; elle est retirée dès le silver.
+- **Changement d'heure** : le 30/10/2022, les deux tranches 2 h – 3 h sont fusionnées (puissance moyennée).
 - **Maille régionale** : on ne voit pas les quartiers ; le persona aurait besoin d'une maille plus fine pour décider d'un
   transformateur précis.
 - **Température moyenne départementale** : moyenne simple des départements d'une région, sans pondération par la population.
 - **Corrélation et causalité** : le froid n'explique pas tout (jours fériés, vacances, week-ends).
+- **Graphe RDF** : il ne contient que des résultats agrégés du gold, pas les 17 millions de lignes.
 - **Accessibilité** : palettes pensées pour les daltoniens, titres explicites, unités affichées partout.
 - **Performance** : Spark pour le volume, tables gold petites dans PostgreSQL, `st.cache_data` dans l'application.
 
@@ -358,4 +378,4 @@ Filtres : régions, profil de client, période, seuil de température.
 - [x] Couche gold et export PostgreSQL
 - [x] Ontologie `.ttl` et requêtes SPARQL
 - [x] Notebook d'exploration et avant/après
-- [ ] Tableau de bord Streamlit (KPI, récit, filtres)
+- [x] Tableau de bord Streamlit (KPI, récit, filtres)
