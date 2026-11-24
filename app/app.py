@@ -1,6 +1,8 @@
+import json
 import os
 
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 from sqlalchemy import create_engine
 
@@ -71,6 +73,7 @@ f = froids[froids["nom_region"].isin(regions)]
 
 st.sidebar.caption(f"{len(regions)} région(s) · {len(j):,} jours-région affichés".replace(",", " "))
 
+
 # ---------- Outils d'affichage ----------
 def fr(x, decimales=0):
     """Nombre à la française : espace pour les milliers, virgule pour les décimales."""
@@ -104,17 +107,17 @@ part_res = soir.loc[soir["famille_profil"] == "RES", "puissance_moy_mw"].sum() /
 st.subheader("Les chiffres clés")
 k1, k2, k3, k4 = st.columns(4)
 k1.metric("Région la plus réactive au froid", plus_reactive["nom_region"],
-          f"{fr(plus_reactive['gradient_w_par_client'], 1)} W/°C par client", delta_color="off",
           help=f"Ensemble des régions choisies : {fr(total_mw_par_degre)} MW de plus pour chaque degré perdu.")
+k1.caption(f"{fr(plus_reactive['gradient_w_par_client'], 1)} W/°C par client")
 k2.metric("Pointe la plus forte", f"{fr(pointe['pointe_mw'])} MW",
-          f"{pointe['nom_region']}, le {pointe['date']:%d/%m/%Y}", delta_color="off",
           help="Plus forte puissance sur une demi-heure, sur la période choisie.")
+k2.caption(f"{pointe['nom_region']}, le {pointe['date']:%d/%m/%Y}")
 k3.metric(f"Surconsommation les jours < {fr(seuil, 1)} °C", texte_ecart,
-          f"{len(jours_froids)} jours froids sur {len(par_jour)}", delta_color="off",
           help="Puissance moyenne des jours froids comparée aux autres jours de la période.")
+k3.caption(f"{len(jours_froids)} jours froids sur {len(par_jour)}")
 k4.metric("Part des particuliers à la pointe du soir", f"{fr(part_res, 1)} %",
-          "créneau 18 h – 20 h", delta_color="off",
           help="Puissance des clients résidentiels ÷ puissance totale, entre 18 h et 20 h.")
+k4.caption("créneau 18 h – 20 h")
 
 with st.expander("Fiches des KPI : définition, calcul, intérêt"):
     st.markdown("""
@@ -125,8 +128,6 @@ with st.expander("Fiches des KPI : définition, calcul, intérêt"):
 | **Surconsommation les jours froids** (%) | Effet d'une vague de froid sur la charge | (puissance moyenne des jours sous le seuil ÷ puissance moyenne des autres jours) − 1, sur la charge totale des régions choisies | Chiffre ce que coûte un jour froid au réseau |
 | **Part des particuliers à la pointe du soir** (%) | Poids des clients résidentiels entre 18 h et 20 h | puissance résidentielle ÷ puissance totale, créneau 18 h – 20 h | Dit qui cibler : effacement chez les particuliers ou chez les professionnels |
 """)
-
-import plotly.express as px
 
 COULEURS_FAMILLES = {"Résidentiels": "#c0392b", "Professionnels": "#2c7fb8", "Petites entreprises": "#7f8c8d"}
 
@@ -145,6 +146,8 @@ fig_annee.add_vrect(x0="2022-11-01", x1="2022-12-31", fillcolor="#2c7fb8", opaci
                     annotation_text="hiver", annotation_position="top left")
 fig_annee.update_traces(line_color="#c0392b")
 fig_annee.update_yaxes(rangemode="tozero")
+fig_annee.update_xaxes(tickvals=[f"2022-{m:02d}-01" for m in range(1, 13, 2)],
+                       ticktext=["janv.", "mars", "mai", "juil.", "sept.", "nov."])
 c1.plotly_chart(fig_annee, use_container_width=True)
 
 # b) La journée : profil horaire moyen par famille de clients (filtres familles et période)
@@ -153,6 +156,7 @@ profil = (h.groupby(["mois", "heure", "famille_profil"], as_index=False)["puissa
 profil["famille"] = profil["famille_profil"].map(NOMS_FAMILLES)
 fig_jour = px.line(profil, x="heure", y="puissance_moy_mw", color="famille", markers=True,
                    color_discrete_map=COULEURS_FAMILLES,
+                   category_orders={"famille": ["Résidentiels", "Professionnels", "Petites entreprises"]},
                    title="La pointe tombe en début de soirée, portée par les particuliers",
                    labels={"heure": "Heure de la journée", "puissance_moy_mw": "Puissance moyenne (MW)", "famille": ""})
 fig_jour.add_vline(x=19, line_dash="dot", line_color="#888888", annotation_text="19 h")
@@ -203,8 +207,6 @@ c4.plotly_chart(fig_barres, use_container_width=True)
 
 st.caption("Gradient = pente de la droite puissance ~ température sur les jours sous 15 °C (table gold_thermosensibilite_region). "
            "Le classement ne dépend pas de la période choisie.")
-
-import json
 
 
 # ---------- Carte des régions ----------
@@ -261,7 +263,11 @@ risque = (t.sort_values("depassement_pointe_2022_pct", ascending=False)
            .rename(columns={"nom_region": "Région", "pointe_2022_mw": "Pointe 2022 (MW)",
                             "pointe_estimee_moins5c_mw": "Pointe estimée à −5 °C (MW)",
                             "depassement_pointe_2022_pct": "Dépassement de la pointe 2022 (%)"}))
-st.dataframe(risque, hide_index=True, use_container_width=True)
+st.dataframe(risque, hide_index=True, use_container_width=True, column_config={
+    "Pointe 2022 (MW)": st.column_config.NumberColumn(format="%.0f"),
+    "Pointe estimée à −5 °C (MW)": st.column_config.NumberColumn(format="%.0f"),
+    "Dépassement de la pointe 2022 (%)": st.column_config.NumberColumn(format="+%.1f %%"),
+})
 st.caption("Estimation par la droite de régression : c'est une extrapolation, peu fiable pour les régions qui ne sont "
            "jamais descendues sous 0 °C en 2022 (Bretagne, PACA, Nouvelle-Aquitaine, Occitanie). "
            "Données 2022, année marquée par la crise énergétique et le plan de sobriété ; clients ≤ 36 kVA seulement.")
