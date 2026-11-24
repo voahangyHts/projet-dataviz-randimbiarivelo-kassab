@@ -125,3 +125,39 @@ with st.expander("Fiches des KPI : définition, calcul, intérêt"):
 | **Surconsommation les jours froids** (%) | Effet d'une vague de froid sur la charge | (puissance moyenne des jours sous le seuil ÷ puissance moyenne des autres jours) − 1, sur la charge totale des régions choisies | Chiffre ce que coûte un jour froid au réseau |
 | **Part des particuliers à la pointe du soir** (%) | Poids des clients résidentiels entre 18 h et 20 h | puissance résidentielle ÷ puissance totale, créneau 18 h – 20 h | Dit qui cibler : effacement chez les particuliers ou chez les professionnels |
 """)
+
+import plotly.express as px
+
+COULEURS_FAMILLES = {"Résidentiels": "#c0392b", "Professionnels": "#2c7fb8", "Petites entreprises": "#7f8c8d"}
+
+# ---------- 1. Contexte ----------
+st.header("1. Contexte : une consommation qui suit les saisons et l'heure")
+c1, c2 = st.columns(2)
+
+# a) L'année : charge totale des régions choisies, jour par jour (toute l'année, pour voir la saison)
+annee = jours[jours["nom_region"].isin(regions)].groupby("date", as_index=False)["puissance_moy_mw"].sum()
+fig_annee = px.line(annee, x="date", y="puissance_moy_mw",
+                    title="La charge est presque deux fois plus forte en hiver qu'en été",
+                    labels={"date": "", "puissance_moy_mw": "Puissance moyenne du jour (MW)"})
+fig_annee.add_vrect(x0="2022-01-01", x1="2022-03-31", fillcolor="#2c7fb8", opacity=0.08, line_width=0,
+                    annotation_text="hiver", annotation_position="top left")
+fig_annee.add_vrect(x0="2022-11-01", x1="2022-12-31", fillcolor="#2c7fb8", opacity=0.08, line_width=0,
+                    annotation_text="hiver", annotation_position="top left")
+fig_annee.update_traces(line_color="#c0392b")
+fig_annee.update_yaxes(rangemode="tozero")
+c1.plotly_chart(fig_annee, use_container_width=True)
+
+# b) La journée : profil horaire moyen par famille de clients (filtres familles et période)
+profil = (h.groupby(["mois", "heure", "famille_profil"], as_index=False)["puissance_moy_mw"].sum()
+           .groupby(["heure", "famille_profil"], as_index=False)["puissance_moy_mw"].mean())
+profil["famille"] = profil["famille_profil"].map(NOMS_FAMILLES)
+fig_jour = px.line(profil, x="heure", y="puissance_moy_mw", color="famille", markers=True,
+                   color_discrete_map=COULEURS_FAMILLES,
+                   title="La pointe tombe en début de soirée, portée par les particuliers",
+                   labels={"heure": "Heure de la journée", "puissance_moy_mw": "Puissance moyenne (MW)", "famille": ""})
+fig_jour.add_vline(x=19, line_dash="dot", line_color="#888888", annotation_text="19 h")
+fig_jour.update_xaxes(dtick=2)
+fig_jour.update_yaxes(rangemode="tozero")
+c2.plotly_chart(fig_jour, use_container_width=True)
+
+st.caption(f"Période du profil horaire : {periode.lower()} · régions et familles choisies dans la barre latérale.")
