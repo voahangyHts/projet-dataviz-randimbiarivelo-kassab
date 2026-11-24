@@ -203,3 +203,37 @@ c4.plotly_chart(fig_barres, use_container_width=True)
 
 st.caption("Gradient = pente de la droite puissance ~ température sur les jours sous 15 °C (table gold_thermosensibilite_region). "
            "Le classement ne dépend pas de la période choisie.")
+
+import json
+
+
+# ---------- Carte des régions ----------
+@st.cache_data
+def charger_regions():
+    """Contours des régions (fichier GeoJSON téléchargé par le script, monté dans le conteneur)."""
+    with open(os.getenv("REGIONS_GEOJSON", "/data/raw/geo/regions.geojson"), encoding="utf-8") as fichier:
+        return json.load(fichier)
+
+
+geo = charger_regions()
+proprietes = geo["features"][0]["properties"]
+cle = next((k for k in ["code", "code_insee", "reg", "INSEE_REG"] if k in proprietes), None)
+
+if cle is None:
+    st.info(f"Carte indisponible : propriétés du GeoJSON = {list(proprietes)}")
+else:
+    titre_carte = ("Les régions de l'Ouest sont les plus réactives au froid, par client"
+                   if colonne == "gradient_w_par_client"
+                   else "Les grandes régions ajoutent le plus de charge à chaque degré perdu")
+    fig_carte = px.choropleth(t, geojson=geo, locations="code_region", featureidkey=f"properties.{cle}",
+                              color=colonne, color_continuous_scale="Reds", hover_name="nom_region",
+                              hover_data={"code_region": False, "gradient_w_par_client": True,
+                                          "gradient_mw_par_degre": True, "rang_reactivite": True},
+                              labels={"gradient_w_par_client": "W/°C par client",
+                                      "gradient_mw_par_degre": "MW/°C",
+                                      "rang_reactivite": "rang de réactivité"},
+                              title=titre_carte)
+    fig_carte.update_geos(fitbounds="locations", visible=False)
+    fig_carte.update_layout(height=520, margin={"l": 0, "r": 0, "t": 50, "b": 0})
+    st.plotly_chart(fig_carte, use_container_width=True)
+    st.caption("La carte suit le choix « Classer les régions par » ci-dessus et les régions sélectionnées.")
