@@ -237,3 +237,31 @@ else:
     fig_carte.update_layout(height=520, margin={"l": 0, "r": 0, "t": 50, "b": 0})
     st.plotly_chart(fig_carte, use_container_width=True)
     st.caption("La carte suit le choix « Classer les régions par » ci-dessus et les régions sélectionnées.")
+
+# ---------- 3. Recommandation ----------
+st.header("3. Recommandation : où et comment agir avant la prochaine vague de froid")
+
+top3 = t.sort_values("gradient_w_par_client", ascending=False).head(3)["nom_region"].tolist()
+plus_lourde = t.sort_values("gradient_mw_par_degre", ascending=False).iloc[0]
+
+st.markdown(f"""
+1. **Cibler la flexibilité locale en priorité sur {", ".join(top3)}** : ce sont les régions où chaque client
+   réagit le plus au froid (jusqu'à {fr(plus_reactive["gradient_w_par_client"], 1)} W par °C perdu).
+2. **Surveiller la capacité du réseau en {plus_lourde["nom_region"]}** : c'est là que chaque degré perdu ajoute
+   le plus de charge ({fr(plus_lourde["gradient_mw_par_degre"])} MW par °C), même si chaque client y réagit moins.
+3. **Agir sur les particuliers entre 18 h et 20 h** : ils représentent {fr(part_res, 1)} % de la puissance appelée
+   à la pointe du soir. Les effacements et signaux tarifaires doivent viser ce créneau.
+4. **Déclencher le dispositif dès que la prévision passe sous {fr(seuil, 1)} °C** : sur la période choisie,
+   un jour froid demande {texte_ecart} de puissance par rapport aux autres jours.
+""")
+
+st.subheader("Risque de saturation si la température moyenne tombe à −5 °C")
+risque = (t.sort_values("depassement_pointe_2022_pct", ascending=False)
+           [["nom_region", "pointe_2022_mw", "pointe_estimee_moins5c_mw", "depassement_pointe_2022_pct"]]
+           .rename(columns={"nom_region": "Région", "pointe_2022_mw": "Pointe 2022 (MW)",
+                            "pointe_estimee_moins5c_mw": "Pointe estimée à −5 °C (MW)",
+                            "depassement_pointe_2022_pct": "Dépassement de la pointe 2022 (%)"}))
+st.dataframe(risque, hide_index=True, use_container_width=True)
+st.caption("Estimation par la droite de régression : c'est une extrapolation, peu fiable pour les régions qui ne sont "
+           "jamais descendues sous 0 °C en 2022 (Bretagne, PACA, Nouvelle-Aquitaine, Occitanie). "
+           "Données 2022, année marquée par la crise énergétique et le plan de sobriété ; clients ≤ 36 kVA seulement.")
