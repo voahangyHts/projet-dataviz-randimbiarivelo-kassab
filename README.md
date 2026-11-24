@@ -315,7 +315,7 @@ Chaque version « Après » applique aussi un titre qui énonce la conclusion et
 
 | Avant (version naïve) | Après (version corrigée) | Principe de perception |
 |---|---|---|
-| Camembert de la consommation par région | Barres horizontales triées (W/°C par client) | La position le long d'un axe se lit mieux que l'angle (Cleveland & McGill) |
+| Camembert de la consommation par région | Barres horizontales triées (part de la consommation, %) | La position le long d'un axe se lit mieux que l'angle (Cleveland & McGill) |
 | Barres verticales dont l'axe commence à 50 | Barres horizontales triées, axe démarrant à zéro | La longueur d'une barre doit être proportionnelle à la valeur |
 | Double axe consommation et température | Nuage de points consommation contre température | Pas de double axe : une relation se montre par un nuage |
 | Carte en palette arc-en-ciel | Palette séquentielle | La couleur doit avoir un sens ordonné et rester lisible pour les daltoniens |
@@ -356,7 +356,7 @@ Récit en trois parties : contexte (charge sur l'année, profil horaire par fami
 - **Clients ≤ 36 kVA seulement** : particuliers et petits professionnels ; l'industrie n'est pas couverte, ce qui gonfle
   mécaniquement la part des particuliers dans la pointe (80 à 83 %).
 - **Séries masquées** : 9 séries entièrement en secret statistique (« S ») ; certaines régions ont 12 séries de profils, d'autres 13.
-- **Secret statistique** : les valeurs « S » masquent les petits groupes, donc certaines plages de puissance sont incomplètes.
+- **Secret statistique et séries masquées** : les valeurs « S » masquent les petits groupes (dont 9 séries entièrement masquées toute l'année) ; certaines régions ont 12 séries de profils, d'autres 13.
 - **Corse absente** : Enedis ne gère pas le réseau corse ; elle est retirée dès le silver.
 - **Changement d'heure** : le 30/10/2022, les deux tranches 2 h – 3 h sont fusionnées (puissance moyennée).
 - **Maille régionale** : on ne voit pas les quartiers ; le persona aurait besoin d'une maille plus fine pour décider d'un
