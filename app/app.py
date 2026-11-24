@@ -235,7 +235,8 @@ else:
                                       "gradient_mw_par_degre": "MW/°C",
                                       "rang_reactivite": "rang de réactivité"},
                               title=titre_carte)
-    fig_carte.update_geos(fitbounds="locations", visible=False)
+    fig_carte.update_geos(fitbounds="locations", visible=False, bgcolor="rgba(0,0,0,0)")
+    fig_carte.update_traces(marker_line_color="#888888", marker_line_width=0.8)
     fig_carte.update_layout(height=520, margin={"l": 0, "r": 0, "t": 50, "b": 0})
     st.plotly_chart(fig_carte, use_container_width=True)
     st.caption("La carte suit le choix « Classer les régions par » ci-dessus et les régions sélectionnées.")
