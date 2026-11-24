@@ -144,8 +144,8 @@ docker compose ps        # jupyter, rustfs, postgres, adminer : « running »
 | 1 | `notebooks/01_bronze.ipynb` | Ingestion des données brutes en Delta (couche bronze) | fait |
 | 2 | `notebooks/02_silver.ipynb` | Nettoyage et typage, règles chiffrées | fait |
 | 3 | `notebooks/03_gold.ipynb` | Agrégats, thermosensibilité, export PostgreSQL | fait |
-| 4 | `notebooks/04_ontologie_sparql.ipynb` | Ontologie et requêtes SPARQL | à venir |
-| 5 | `notebooks/05_exploration.ipynb` | Exploration et avant/après des graphiques | à venir |
+| 4 | `notebooks/04_ontologie_sparql.ipynb` | Ontologie et requêtes SPARQL | fait |
+| 5 | `notebooks/05_exploration.ipynb` | Exploration et avant/après des graphiques | fait |
 
 **6. Lancer le tableau de bord**
 
@@ -356,6 +356,6 @@ Filtres : régions, profil de client, période, seuil de température.
 - [x] Couche bronze (Delta dans RustFS)
 - [x] Couche silver (règles de nettoyage chiffrées)
 - [x] Couche gold et export PostgreSQL
-- [ ] Ontologie `.ttl` et requêtes SPARQL
-- [ ] Notebook d'exploration et avant/après
+- [x] Ontologie `.ttl` et requêtes SPARQL
+- [x] Notebook d'exploration et avant/après
 - [ ] Tableau de bord Streamlit (KPI, récit, filtres)
