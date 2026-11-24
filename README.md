@@ -108,7 +108,7 @@ Parquet du lac à chaque clic serait lent. C'est aussi une source unique pour to
 │   └── departements_regions.csv  # référentiel des 96 départements métropolitains et de leur région
 ├── commun/                       # utilitaires partagés par les notebooks (Spark, S3, PostgreSQL)
 ├── notebooks/                    # à exécuter dans l'ordre
-├── ontologie/                    # ontologie .ttl et requêtes SPARQL
+├── ontologie/                    # ontologie .ttl, graphe RDF et graphe interactif (pyvis)
 ├── app/                          # application Streamlit (Dockerfile, app.py)
 └── docs/                         # captures d'écran et documentation
 ```
@@ -122,7 +122,7 @@ Sous Windows, exécuter les commandes `bash` depuis **Git Bash**.
 
 ```bash
 # 1. Cloner le dépôt
-git clone [https://github.com/voahangyHts/projet-dataviz-randimbiarivelo-kassab.git](https://github.com/voahangyHts/projet-dataviz-randimbiarivelo-kassab.git)
+git clone https://github.com/voahangyHts/projet-dataviz-randimbiarivelo-kassab.git
 cd projet-dataviz-randimbiarivelo-kassab
 
 # 2. Créer le fichier d'environnement (les valeurs par défaut conviennent)
@@ -163,7 +163,7 @@ Puis ouvrir http://localhost:8501.
 | Console RustFS (data lake) | http://localhost:9001 | `rustfsadmin` / `rustfsadmin` |
 | Adminer (PostgreSQL) | http://localhost:8080 | système PostgreSQL, serveur `postgres`, `projet` / `projet`, base `enedis` |
 | Streamlit | http://localhost:8501 | — |
-| Fuseki (SPARQL, profil `semantique`) | http://localhost:3030 | `admin` / `admin` |
+| Fuseki (SPARQL, profil `semantique`, facultatif) | http://localhost:3030 | `admin` / `admin` — non utilisé : nos requêtes SPARQL tournent avec RDFLib dans le notebook 04 |
 
 ### Commandes utiles
 
@@ -355,7 +355,6 @@ Récit en trois parties : contexte (charge sur l'année, profil horaire par fami
   régions qui ne sont jamais descendues sous 0 °C en 2022 (Bretagne, PACA, Nouvelle-Aquitaine, Occitanie).
 - **Clients ≤ 36 kVA seulement** : particuliers et petits professionnels ; l'industrie n'est pas couverte, ce qui gonfle
   mécaniquement la part des particuliers dans la pointe (80 à 83 %).
-- **Séries masquées** : 9 séries entièrement en secret statistique (« S ») ; certaines régions ont 12 séries de profils, d'autres 13.
 - **Secret statistique et séries masquées** : les valeurs « S » masquent les petits groupes (dont 9 séries entièrement masquées toute l'année) ; certaines régions ont 12 séries de profils, d'autres 13.
 - **Corse absente** : Enedis ne gère pas le réseau corse ; elle est retirée dès le silver.
 - **Changement d'heure** : le 30/10/2022, les deux tranches 2 h – 3 h sont fusionnées (puissance moyennée).
