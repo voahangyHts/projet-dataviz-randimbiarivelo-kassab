@@ -161,3 +161,45 @@ fig_jour.update_yaxes(rangemode="tozero")
 c2.plotly_chart(fig_jour, use_container_width=True)
 
 st.caption(f"Période du profil horaire : {periode.lower()} · régions et familles choisies dans la barre latérale.")
+
+# ---------- 2. Constat ----------
+st.header("2. Constat : toutes les régions consomment plus quand il fait froid, mais pas au même rythme")
+c3, c4 = st.columns(2)
+
+# a) Nuage de points : consommation par client contre température (toute l'année, régions choisies)
+nuage = jours[jours["nom_region"].isin(regions)].copy()
+plus_faible = t.sort_values("gradient_w_par_client").iloc[0]["nom_region"]
+nuage["groupe"] = nuage["nom_region"].where(
+    nuage["nom_region"].isin([plus_reactive["nom_region"], plus_faible]), "Autres régions")
+fig_nuage = px.scatter(nuage, x="tmoy_c", y="kwh_par_client", color="groupe", opacity=0.6,
+                       color_discrete_map={plus_reactive["nom_region"]: "#c0392b", plus_faible: "#2c7fb8",
+                                           "Autres régions": "#bbbbbb"},
+                       hover_data={"nom_region": True, "date": "|%d/%m/%Y", "groupe": False},
+                       title="Sous 15 °C, chaque degré perdu fait monter la consommation",
+                       labels={"tmoy_c": "Température moyenne du jour (°C)",
+                               "kwh_par_client": "Consommation par client (kWh / jour)", "groupe": ""})
+fig_nuage.add_vline(x=15, line_dash="dot", line_color="#888888", annotation_text="seuil de chauffage 15 °C")
+fig_nuage.update_yaxes(rangemode="tozero")
+c3.plotly_chart(fig_nuage, use_container_width=True)
+
+# b) Classement des régions : par client ou en total
+critere = c4.radio("Classer les régions par", ["Réactivité par client (W/°C)", "Charge totale ajoutée (MW/°C)"],
+                   horizontal=True)
+colonne = "gradient_w_par_client" if critere.startswith("Réactivité") else "gradient_mw_par_degre"
+classement = t.sort_values(colonne)
+fig_barres = px.bar(classement, x=colonne, y="nom_region", orientation="h", text=colonne,
+                    color=colonne, color_continuous_scale="Reds",
+                    hover_data={"gradient_w_par_client": True, "gradient_mw_par_degre": True, "r2": True},
+                    title=("L'Ouest réagit le plus au froid, client par client" if colonne == "gradient_w_par_client"
+                           else "Les grandes régions ajoutent le plus de charge à chaque degré perdu"),
+                    labels={"gradient_w_par_client": "W supplémentaires par client et par °C perdu",
+                            "gradient_mw_par_degre": "MW supplémentaires par °C perdu",
+                            "nom_region": "", "r2": "qualité de la droite (r²)"})
+fig_barres.update_coloraxes(showscale=False)
+fig_barres.update_traces(texttemplate="%{text:.1f}", textposition="outside")
+fig_barres.update_traces(cliponaxis=False)
+fig_barres.update_xaxes(range=[0, classement[colonne].max() * 1.15])
+c4.plotly_chart(fig_barres, use_container_width=True)
+
+st.caption("Gradient = pente de la droite puissance ~ température sur les jours sous 15 °C (table gold_thermosensibilite_region). "
+           "Le classement ne dépend pas de la période choisie.")
