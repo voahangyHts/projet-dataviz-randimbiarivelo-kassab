@@ -267,22 +267,32 @@ Choix de calcul :
 
 ## 8. Sémantique : ontologie et requêtes SPARQL
 
-Ontologie : `ontologie/ontologie_enedis.ttl`.
+Notebook : `notebooks/04_ontologie_sparql.ipynb` (RDFLib). Fichiers produits dans `ontologie/` :
+`ontologie_enedis.ttl` (le vocabulaire, 86 triplets), `graphe_enedis.ttl` (vocabulaire + données, 29 342 triplets)
+et `graphe_regions.html` (graphe interactif, capture : `docs/04_graphe_regions.png`).
 
 | Type | Éléments |
 |---|---|
-| Classes | `Region`, `Departement`, `ProfilClient` (⊃ `ProfilResidentiel`, `ProfilProfessionnel`), `PlageDePuissance`, `MesureConsommation`, `JourDeFroid` (⊂ `Jour`) |
-| Relations | `Departement situeDans Region` · `MesureConsommation concerne Region` · `MesureConsommation pourProfil ProfilClient` · `MesureConsommation pourPlage PlageDePuissance` |
-| Attributs | `codeInsee`, `nom`, `energieMWh`, `temperatureMoyenne`, `gradientThermo` |
+| Classes | `Region`, `Departement`, `ProfilClient` (⊃ `ProfilResidentiel`, `ProfilProfessionnel`, `ProfilEntreprise`), `Mesure` (⊃ `MesureJournaliere` ⊃ `MesureJourDeFroid`, et `MesurePointe`) |
+| Relations | `Departement situeDans Region` · `Mesure concerne Region` · `MesurePointe pourProfil ProfilClient` |
+| Attributs | `nom`, `codeRegion`, `codeInsee`, `gradientMWParDegre`, `gradientWParClient`, `rangReactivite`, `date`, `temperatureMoyenne`, `puissanceMoyenneMW`, `pointeMW`, `mois`, `heure` |
+| Interopérabilité | chaque région est reliée à son entité **Wikidata** par `owl:sameAs` |
 
-Requêtes SPARQL (`ontologie/requetes/`) :
-1. Les départements de chaque région : base de la jointure météo → région. _à compléter_
-2. Les régions classées par gradient de thermosensibilité : les plus sensibles au froid en premier. _à compléter_
-3. Les jours de froid et la consommation résidentielle associée, grâce à la hiérarchie `ProfilResidentiel ⊂ ProfilClient`. _à compléter_
+Données chargées : les 12 régions et leur thermosensibilité, les 94 départements, les 3 familles de clients,
+les 4 380 mesures journalières (dont les 120 jours les plus froids, typés `MesureJourDeFroid`) et la puissance à 19 h
+par famille et par mois (432 mesures).
+
+**La hiérarchie au travail :** `?m a en:MesureJournaliere` trouve 4 260 mesures ; `?m a/rdfs:subClassOf* en:MesureJournaliere`
+en trouve 4 380. Les 120 jours de froid sont déduits de l'ontologie, sans que les données le disent.
+
+| Requête | Question du persona | Résultat |
+|---|---|---|
+| 1. Régions classées par réactivité, avec leur nombre de départements | Où agir en priorité ? | Bretagne (53,8 W/°C par client), Normandie, Pays de la Loire en tête ; l'Île-de-France est dernière par client mais première en MW/°C (208,5) |
+| 2. Puissance des jours de froid comparée à l'année (hiérarchie des mesures) | Que coûte une vague de froid ? | De +59 % (PACA) à +89 % (Centre-Val de Loire) de puissance par rapport à un jour moyen |
+| 3. Part des particuliers dans la puissance à 19 h en hiver (hiérarchie des profils) | Qui cibler pour l'effacement ? | 80 à 83 % dans toutes les régions : la flexibilité à la pointe passe d'abord par les particuliers |
 
 **Pourquoi ne pas mettre les 17 millions de lignes dans le graphe ?** Le graphe décrit et relie les concepts ;
-le data lake stocke le volume. Le graphe ne contient que les régions, départements, profils et les résultats agrégés.
-
+le data lake stocke le volume. Le graphe ne contient que les régions, départements, familles et des résultats agrégés du gold.
 ---
 
 ## 9. Visualisation
