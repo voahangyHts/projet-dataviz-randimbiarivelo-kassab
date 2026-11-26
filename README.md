@@ -163,7 +163,7 @@ Puis ouvrir http://localhost:8501.
 | Console RustFS (data lake) | http://localhost:9001 | `rustfsadmin` / `rustfsadmin` |
 | Adminer (PostgreSQL) | http://localhost:8080 | système PostgreSQL, serveur `postgres`, `projet` / `projet`, base `enedis` |
 | Streamlit | http://localhost:8501 | — |
-| Fuseki (SPARQL, profil `semantique`, facultatif) | http://localhost:3030 | `admin` / `admin` — non utilisé : nos requêtes SPARQL tournent avec RDFLib dans le notebook 04 |
+| Fuseki (serveur SPARQL, profil `semantique`) | http://localhost:3030 | `admin` / `admin` — voir section 8.1 |
 
 ### Commandes utiles
 
@@ -292,6 +292,18 @@ en trouve 4 380. Les 120 jours de froid sont déduits de l'ontologie, sans que l
 | 1. Régions classées par réactivité, avec leur nombre de départements | Où agir en priorité ? | Bretagne (53,8 W/°C par client), Normandie, Pays de la Loire en tête ; l'Île-de-France est dernière par client mais première en MW/°C (208,5) |
 | 2. Puissance des jours de froid comparée à l'année (hiérarchie des mesures) | Que coûte une vague de froid ? | De +59 % (PACA) à +89 % (Centre-Val de Loire) de puissance par rapport à un jour moyen |
 | 3. Part des particuliers dans la puissance à 19 h en hiver (hiérarchie des profils) | Qui cibler pour l'effacement ? | 80 à 83 % dans toutes les régions : la flexibilité à la pointe passe d'abord par les particuliers |
+
+### 8.1 Le graphe sur un serveur SPARQL (Fuseki)
+
+Les requêtes du notebook tournent dans Python (RDFLib). Pour montrer que le graphe est interrogeable par n'importe quel
+outil, nous l'avons aussi chargé dans **Apache Jena Fuseki**, le serveur SPARQL prévu dans `compose.yaml` :
+
+1. `docker compose --profile semantique up -d`, puis ouvrir http://localhost:3030 (`admin` / `admin`) ;
+2. **manage → new dataset** : nom `enedis`, type *Persistent (TDB2)* ;
+3. **add data** : fichier `ontologie/graphe_enedis.ttl` → **29 342 triplets** chargés, le même nombre que dans le notebook ;
+4. onglet **query** : la requête 1 renvoie le même classement que dans le notebook (Bretagne en tête, Île-de-France dernière).
+
+![Requête 1 exécutée dans Fuseki](docs/04_fuseki_requete1.png)
 
 **Pourquoi ne pas mettre les 17 millions de lignes dans le graphe ?** Le graphe décrit et relie les concepts ;
 le data lake stocke le volume. Le graphe ne contient que les régions, départements, familles et des résultats agrégés du gold.
