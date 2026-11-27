@@ -118,7 +118,7 @@ Parquet du lac à chaque clic serait lent. C'est aussi une source unique pour to
 ## 5. Lancer le projet
 
 **Prérequis :** Git, Docker Desktop (8 Go de mémoire alloués), environ 10 Go d'espace disque libre.
-Sous Windows, exécuter les commandes `bash` depuis **Git Bash**.
+*Sous Windows, exécuter toutes les commandes dans Git Bash, pas dans PowerShell* : `bash`, `grep` et `&&` n'y fonctionnent pas.
 
 ```bash
 # 1. Cloner le dépôt
